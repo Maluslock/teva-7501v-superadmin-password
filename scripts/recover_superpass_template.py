@@ -44,6 +44,22 @@ LOCAL_OUT = "lastgood.dec.xml"           # 本地落盘
 CHUNK = 98304                            # dd 分块大小（太大 telnetd 会断）
 # ────────────────────────────────────────────────────────────────
 
+USAGE = """用法（照着三行走）：
+
+  1) 先改本文件顶部 CONFIG 区的 6 个值：
+       GW           光猫地址，一般 192.168.1.1
+       VERIFY_CODE  A1 第 5 张表派生的 8 位值（设备 MAC 后 8 位倒序喂进去）
+       SU_PASS      通常与 VERIFY_CODE 同值
+       TEL_USER / TEL_PASS   出厂 telnet 账号，多为 telnetadmin/telnetadmin
+       ENC_CFG      加密配置路径，天邑常见 /config/work/lastgood.xml
+  2) python3 recover_superpass_template.py --check   只探 8080 在不在线（不改设备）
+  3) python3 recover_superpass_template.py           跑全流程，成功后本地得到
+                                                      lastgood.dec.xml，里面 grep 到
+                                                      aucTeleAccountPassword 就是超管口令
+
+VERIFY_CODE 怎么算：见 docs/01-methodology.md §3.4（A1 五表，天邑海思用第 5 张）
+"""
+
 BASE = f"http://{GW}:{PORT_WEB}"
 
 
@@ -210,6 +226,20 @@ def phase_grep():
 
 
 def main():
+    argv = sys.argv[1:]
+    if "-h" in argv or "--help" in argv:
+        print(USAGE)
+        return 0
+    if "--check" in argv:
+        body = curl("/usr_logon.html")
+        alive = bool(body)
+        print("[check]", "8080 在线，可以往下走" if alive else f"8080 没响应（{body[:60] or '空'}）")
+        print("[check] 先确认你是从光猫 LAN 侧访问，且地址是", BASE)
+        return 0 if alive else 1
+    if "<" in VERIFY_CODE or "<" in SU_PASS:
+        print(USAGE)
+        print("[abort] CONFIG 区还是占位符，先把 VERIFY_CODE / SU_PASS 填成真值再跑。")
+        return 2
     ok = phase_decrypt()
     if ok:
         ok = phase_pull()
