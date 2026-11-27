@@ -102,7 +102,7 @@ root 和 telnetadmin 的 `$6$` 均等于 `telnetadmin`。
 ### 5. 让设备自己解配置 → 取口令
 
 ```bash
-su -c "hi_ipc /home/cmd/encrypt/decrypt_file \\
+su -c "hi_ipc /home/cmd/encrypt/decrypt_file \
         -v ifile /config/work/lastgood.xml ofile /tmp/lg.xml"
 # → /tmp/lg.xml = 233333 B 明文 XML
 grep -A1 'aucTeleAccountName' /tmp/lg.xml
@@ -136,7 +136,7 @@ grep -A1 'aucTeleAccountName' /tmp/lg.xml
 
 ```bash
 # 控制实验：已知正确的普通账号先登一次，证明通道没坏
-curl -s -i -X POST http://192.168.1.1/cgi-bin/luci \\
+curl -s -i -X POST http://192.168.1.1/cgi-bin/luci \
   --data-urlencode username=useradmin --data-urlencode psd=<标签口令> | head -3
 # → 302 + Set-Cookie: sysauth=<32hex>   = 通道正常
 
