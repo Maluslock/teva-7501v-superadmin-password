@@ -109,7 +109,7 @@ root 与 telnetadmin 的 `$6$` 都等于 `telnetadmin`。
 不用我们爆 key。
 
 ```bash
-su -c "hi_ipc /home/cmd/encrypt/decrypt_file \\
+su -c "hi_ipc /home/cmd/encrypt/decrypt_file \
         -v ifile /config/work/lastgood.xml ofile /tmp/lg.xml"
 # → /tmp/lg.xml = 233333 B 明文 XML
 grep -A1 'aucTeleAccountName' /tmp/lg.xml
@@ -149,7 +149,7 @@ grep -A1 'aucTeleAccountName' /tmp/lg.xml
 
 ```bash
 # 控制实验：已知正确的普通账号先登一次
-curl -s -i -X POST http://192.168.1.1/cgi-bin/luci \\
+curl -s -i -X POST http://192.168.1.1/cgi-bin/luci \
   --data-urlencode username=useradmin --data-urlencode psd=<标签口令> | head -3
 # → 302 + Set-Cookie: sysauth=<32hex>   = 通道正常
 
@@ -197,7 +197,5 @@ timeout 5 bash -c 'exec 3<>/dev/tcp/192.168.1.1/23' || echo "23 已关"
   TR-069 是口令被随机化的根源。
   别删整条连接，可能断网。
 - 收工必做：关 telnet、清 `/tmp` 临时件、清失败计数。
-
----
 
 许可为 [MIT](LICENSE)
