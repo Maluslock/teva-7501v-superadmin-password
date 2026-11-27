@@ -144,8 +144,8 @@ su -c "hi_ipc /home/cmd/encrypt/decrypt_file -v ifile /config/work/lastgood.xml 
 不消耗 web 登录次数，也不触发 3 次锁。
 
 ```bash
-gdbus call --system --dest com.ctc.igd1.SysCmd \\
-  --object-path /com/ctc/igd1/Telecom/System \\
+gdbus call --system --dest com.ctc.igd1.SysCmd \
+  --object-path /com/ctc/igd1/Telecom/System \
   --method com.ctc.igd1.SysCmd.CheckTAPasswd telecomadmin<8位数字>
 # → (uint32 0, '')           正确
 # 负样本 → (uint32 1, 'invalid passowrd')   ← 固件拼写错误，可当指纹
