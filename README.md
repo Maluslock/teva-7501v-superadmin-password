@@ -8,6 +8,70 @@
 
 ---
 
+## 怎么用（先看这里）
+
+三种人三种走法，挑一个。
+
+| 你是谁 | 从哪开始 |
+|---|---|
+| 只想拿口令 | 跳到下面的「五步流程」，命令直接复制 |
+| 想跑脚本 | 改 `scripts/recover_superpass_template.py` 顶部的 CONFIG，再跑它 |
+| 换一台别的光猫 | 读 [docs/01-methodology.md](docs/01-methodology.md)，按五阶段套 |
+
+### 跑脚本之前，先改 6 个值
+
+打开 `scripts/recover_superpass_template.py`，
+顶部 `CONFIG` 区有 6 个常量。
+
+| 常量 | 填什么 | 从哪儿拿 |
+|---|---|---|
+| `GW` | 光猫地址，一般 `192.168.1.1` | 标签上「默认终端配置地址」 |
+| `VERIFY_CODE` | A1 第 5 张表的 8 位值 | 见 `docs/01` §3.4，喂 MAC 后 8 位 |
+| `SU_PASS` | 一般与上面同值 | 天邑这两处是同一个算法 |
+| `TEL_USER` / `TEL_PASS` | `telnetadmin` / `telnetadmin` | 出厂值，个别型号是 `admin` |
+| `ENC_CFG` | `/config/work/lastgood.xml` | 机型不同路径不同，先 `ls /config/work` |
+
+改完先探一下门，别急着全跑：
+
+```bash
+python3 scripts/recover_superpass_template.py --check
+# 8080 在线，可以往下走     ← 看到这句才继续
+```
+
+它在线，意思是你从 LAN 侧能碰到 `http://192.168.1.1:8080`。
+不是的话先查网线、IP 段、是不是接在路由器后面。
+
+### 跑起来会看到什么
+
+```bash
+python3 scripts/recover_superpass_template.py
+```
+
+它依次打印 `[decrypt]`、`[pull]`、`[grep]` 三段。
+最后一段里出现这行就算成：
+
+```
+aucTeleAccountName=telecomadmin  aucTeleAccountPassword=<8位数字>
+```
+
+口令就是 `telecomadmin` 加 8 位数字，因人而异。
+它落在本地 `lastgood.dec.xml`，设备上不留东西。
+
+> 需要 Python 3.9–3.12。3.13 起标准库删了 `telnetlib`，脚本会 import 失败。
+
+### 卡住了对这张表
+
+| 现象 | 多半是 | 怎么办 |
+|---|---|---|
+| `--check` 没响应 | 不在光猫 LAN 侧 | 电脑直连光猫 LAN 口，别接在路由器后面 |
+| `Verification code Error!` | A1 表选错 | 换第 5 张表，前 4 张必错 |
+| 23 端口没开 | 参数放进了 query | `--data` 走 form body，别拼在 URL 上 |
+| `su` 一投就退 | 用管道喂了 stdin | 必须真 tty，脚本已按 tty 写 |
+| `decrypt_file` 报错 | 本机型没这条命令 | `ls /home/cmd/encrypt/` 看有没有 |
+| 拉回的文件是乱码 | 分块太大被截断 | 调小 `CHUNK`，98304 是实机安全值 |
+
+---
+
 ## 30 秒速查
 
 | 项 | 结果 |
@@ -178,7 +242,7 @@ timeout 5 bash -c 'exec 3<>/dev/tcp/192.168.1.1/23' || echo "23 已关"
 
 - 仅对**自有设备**，本次用自购光猫接管自家网关。
 - **零写操作**：没改口令、没恢复出厂、没动 LOID/TR-069。
-- 稳定可**把 ACS 地址置空**。
+- 更稳的办法是**把 ACS 地址置空**。
   TR-069 会随机化口令。勿删连接，可能断网。
 - 收工：关 telnet，清 `/tmp` 临时件和登录失败计数。
 
